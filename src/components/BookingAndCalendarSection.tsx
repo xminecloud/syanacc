@@ -1,7 +1,32 @@
 import React, { useState, useEffect } from "react";
-import { Calendar, Clock, CheckCircle2, Phone, MessageSquare, Wrench, ExternalLink, RefreshCw, User, MapPin } from "lucide-react";
+import {
+  Calendar,
+  Clock,
+  CheckCircle2,
+  Phone,
+  MessageSquare,
+  Wrench,
+  ExternalLink,
+  RefreshCw,
+  User,
+  MapPin,
+  Sparkles,
+  BellRing,
+} from "lucide-react";
 import { BookingTicket } from "../types";
 import { TicketCompactTimeline } from "./TicketTimelineView";
+import { RecurringMaintenanceToggle } from "./RecurringMaintenanceToggle";
+import { CalendarConfirmModal } from "./CalendarConfirmModal";
+import {
+  initCalendarAuth,
+  signInWithGoogleCalendar,
+  logoutGoogleCalendar,
+  createRecurringMaintenanceEvent,
+  getRecurringCalendarWebUrl,
+  calculateNextYearDate,
+  GoogleCalendarEventResult,
+} from "../services/googleCalendar";
+import { User as FirebaseUser } from "firebase/auth";
 
 interface BookingAndCalendarSectionProps {
   initialBrand?: string;
@@ -38,6 +63,67 @@ export const BookingAndCalendarSection: React.FC<BookingAndCalendarSectionProps>
   const [internalBookings, setInternalBookings] = useState<BookingTicket[]>([]);
   const [latestBooking, setLatestBooking] = useState<BookingTicket | null>(null);
   const [successNotice, setSuccessNotice] = useState("");
+
+  // Recurring Maintenance & Google Calendar State
+  const [scheduleRecurring, setScheduleRecurring] = useState(false);
+  const [googleUser, setGoogleUser] = useState<FirebaseUser | null>(null);
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [isSchedulingCalendar, setIsSchedulingCalendar] = useState(false);
+  const [showCalendarConfirmModal, setShowCalendarConfirmModal] = useState(false);
+  const [pendingBookingToSchedule, setPendingBookingToSchedule] = useState<BookingTicket | null>(null);
+  const [calendarScheduleResult, setCalendarScheduleResult] = useState<GoogleCalendarEventResult | null>(null);
+
+  // Initialize Calendar Auth
+  useEffect(() => {
+    const unsubscribe = initCalendarAuth(
+      (user) => setGoogleUser(user),
+      () => setGoogleUser(null)
+    );
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, []);
+
+  const handleGoogleSignIn = async () => {
+    setIsAuthenticating(true);
+    try {
+      const res = await signInWithGoogleCalendar();
+      if (res?.user) {
+        setGoogleUser(res.user);
+      }
+    } catch (err: any) {
+      console.error("Failed to sign in with Google:", err);
+    } finally {
+      setIsAuthenticating(false);
+    }
+  };
+
+  const handleGoogleSignOut = async () => {
+    await logoutGoogleCalendar();
+    setGoogleUser(null);
+    setCalendarScheduleResult(null);
+  };
+
+  const executeScheduleRecurringEvent = async (targetBooking: BookingTicket) => {
+    setIsSchedulingCalendar(true);
+    try {
+      const result = await createRecurringMaintenanceEvent({
+        booking: targetBooking,
+        scheduledTime,
+        notes,
+      });
+      setCalendarScheduleResult(result);
+    } catch (e: any) {
+      console.error("Failed to schedule recurring calendar event:", e);
+      setCalendarScheduleResult({
+        success: false,
+        error: e.message || "حدث خطأ أثناء الاتصال بـ Google Calendar",
+      });
+    } finally {
+      setIsSchedulingCalendar(false);
+      setShowCalendarConfirmModal(false);
+    }
+  };
 
   const bookings = externalBookings || internalBookings;
 
@@ -95,7 +181,15 @@ export const BookingAndCalendarSection: React.FC<BookingAndCalendarSectionProps>
       const data = await res.json();
       if (data.success && data.booking) {
         setLatestBooking(data.booking);
+        setPendingBookingToSchedule(data.booking);
         setSuccessNotice(`تم تسجيل طلب الصيانة بنجاح برقم البلاغ: ${data.booking.id}`);
+
+        if (scheduleRecurring) {
+          if (googleUser) {
+            setShowCalendarConfirmModal(true);
+          }
+        }
+
         if (onBookingCreated) {
           onBookingCreated(data.booking);
         } else {
@@ -291,6 +385,22 @@ export const BookingAndCalendarSection: React.FC<BookingAndCalendarSectionProps>
                 />
               </div>
 
+              {/* Schedule Recurring Maintenance Toggle (Google Calendar API) */}
+              <RecurringMaintenanceToggle
+                enabled={scheduleRecurring}
+                onToggle={(val) => {
+                  setScheduleRecurring(val);
+                }}
+                scheduledDate={scheduledDate}
+                scheduledTime={scheduledTime}
+                appliance={appliance}
+                brand={brand}
+                googleUser={googleUser}
+                isAuthenticating={isAuthenticating}
+                onGoogleSignIn={handleGoogleSignIn}
+                onGoogleSignOut={handleGoogleSignOut}
+              />
+
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
                 <button
                   type="submit"
@@ -315,15 +425,15 @@ export const BookingAndCalendarSection: React.FC<BookingAndCalendarSectionProps>
               </div>
             </form>
 
-            {/* Success Box with Google Calendar Button */}
+            {/* Success Box with Google Calendar Integration */}
             {successNotice && latestBooking && (
-              <div className="bg-emerald-50 border-2 border-emerald-500 p-5 rounded-2xl space-y-3 animate-in fade-in">
+              <div className="bg-emerald-50 border-2 border-emerald-500 p-5 rounded-2xl space-y-3.5 animate-in fade-in">
                 <div className="flex items-center gap-2 text-emerald-800 font-black text-sm">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
                   <span>{successNotice}</span>
                 </div>
                 <p className="text-xs text-slate-600 font-medium leading-relaxed">
-                  تم اعتماد البلاغ. يمكنك الآن حفظ الموعد في تقويم Google الشخصي ليذكرك قبل وصول المهندس.
+                  تم اعتماد البلاغ. تم تفعيل المتابعة الفورية وجدولة الموعد في نظام الدعم الميداني.
                 </p>
 
                 {/* Live Progression Timeline for newly booked ticket */}
@@ -331,7 +441,96 @@ export const BookingAndCalendarSection: React.FC<BookingAndCalendarSectionProps>
                   <TicketCompactTimeline ticket={latestBooking} />
                 </div>
 
-                <div className="pt-1">
+                {/* Recurring Maintenance Status Banner */}
+                {scheduleRecurring && (
+                  <div className="bg-white/90 border border-amber-300 rounded-xl p-3.5 space-y-2 text-xs">
+                    <div className="flex items-center justify-between flex-wrap gap-1">
+                      <div className="flex items-center gap-1.5 font-black text-slate-900">
+                        <Sparkles className="w-4 h-4 text-amber-600" />
+                        <span>جدولة الصيانة الدورية السنوية (Google Calendar):</span>
+                      </div>
+                      <span className="text-[10px] font-bold bg-amber-100 text-amber-900 px-2 py-0.5 rounded">
+                        سنوياً (RRULE)
+                      </span>
+                    </div>
+
+                    {calendarScheduleResult?.success ? (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-1.5 text-emerald-700 font-bold text-xs">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                          <span>تم إنشاء التذكير السنوي بنجاح في تقويم Google الشخصي!</span>
+                        </div>
+                        <p className="text-[11px] text-slate-600">
+                          أول موعد للفحص: <strong>{new Date(calendarScheduleResult.firstReminderDate || "").toLocaleDateString("ar-EG", { year: "numeric", month: "long", day: "numeric" })}</strong>، وسيتكرر تلقائياً كل عام مع إشعارات استباقية.
+                        </p>
+                        {calendarScheduleResult.htmlLink && (
+                          <a
+                            href={calendarScheduleResult.htmlLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition shadow-xs"
+                          >
+                            <Calendar className="w-3.5 h-3.5" />
+                            <span>فتح التذكير السنوي في تقويم Google</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <p className="text-[11px] text-slate-600">
+                          {googleUser
+                            ? `حساب Google متصل (${googleUser.email}). اضغط لتأكيد الإضافة إلى تقويمك:`
+                            : "لتسجيل التذكير السنوي المتكرر تلقائياً، يرجى تسجيل الدخول بحساب Google:"}
+                        </p>
+                        <div className="flex flex-wrap items-center gap-2">
+                          {!googleUser ? (
+                            <button
+                              type="button"
+                              onClick={handleGoogleSignIn}
+                              disabled={isAuthenticating}
+                              className="bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 font-bold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shadow-2xs transition"
+                            >
+                              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                              <span>تسجيل الدخول بـ Google لإتمام الجدولة</span>
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => executeScheduleRecurringEvent(latestBooking)}
+                              disabled={isSchedulingCalendar}
+                              className="bg-amber-600 hover:bg-amber-700 disabled:opacity-60 text-white font-bold px-3.5 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shadow-xs transition"
+                            >
+                              {isSchedulingCalendar ? (
+                                <>
+                                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                                  <span>جاري المزامنة...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Calendar className="w-3.5 h-3.5" />
+                                  <span>تأكيد المزامنة مع تقويم Google</span>
+                                </>
+                              )}
+                            </button>
+                          )}
+
+                          <a
+                            href={getRecurringCalendarWebUrl(latestBooking, scheduledTime)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[11px] text-slate-600 hover:text-slate-900 underline font-medium"
+                          >
+                            أو فتح رابط التقويم السنوي المباشر
+                          </a>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Primary Visit Calendar Link */}
+                <div className="pt-1 flex flex-wrap items-center gap-2">
                   <a
                     href={getGoogleCalendarUrl(latestBooking)}
                     target="_blank"
@@ -339,7 +538,7 @@ export const BookingAndCalendarSection: React.FC<BookingAndCalendarSectionProps>
                     className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-black px-4 py-2.5 rounded-xl shadow transition"
                   >
                     <Calendar className="w-4 h-4" />
-                    <span>إضافة الموعد إلى Google Calendar 📅</span>
+                    <span>حفظ موعد الزيارة الحالية في Google Calendar 📅</span>
                     <ExternalLink className="w-3.5 h-3.5 mr-1" />
                   </a>
                 </div>
@@ -421,6 +620,21 @@ export const BookingAndCalendarSection: React.FC<BookingAndCalendarSectionProps>
           </div>
         </div>
       </div>
+
+      {/* Confirmation Modal for Google Calendar Recurring Event */}
+      {pendingBookingToSchedule && (
+        <CalendarConfirmModal
+          isOpen={showCalendarConfirmModal}
+          onConfirm={() => executeScheduleRecurringEvent(pendingBookingToSchedule)}
+          onCancel={() => setShowCalendarConfirmModal(false)}
+          isSubmitting={isSchedulingCalendar}
+          brand={pendingBookingToSchedule.brand}
+          appliance={pendingBookingToSchedule.appliance}
+          firstReminderDate={calculateNextYearDate(pendingBookingToSchedule.scheduledDate || scheduledDate)}
+          scheduledTime={scheduledTime}
+          user={googleUser}
+        />
+      )}
     </section>
   );
 };

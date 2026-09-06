@@ -2,5 +2,5 @@
   "name": "VTEC Maintenance Portal",
   "description": "Certified home appliance maintenance portal with Google Calendar scheduling, Recharts request status visualization (pending vs. completed), Google Forms inspection sheets, Google Contacts management, Firebase persistence, and Gemini-powered smart diagnostics.",
   "requestFramePermissions": ["geolocation"],
-  "majorCapabilities": []
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

@@ -43,7 +43,7 @@ export const BrandMatrixSection: React.FC<BrandMatrixSectionProps> = ({
             تغطية شاملة لـ 25+ ماركة عالمية
           </div>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-black italic mb-4 text-slate-900">
-            مصفوفة ومراكز صيانة الماركات المعتمدة بالإسكندرية
+            قائمة ومراكز صيانة الماركات المعتمدة بالإسكندرية
           </h2>
           <p className="text-slate-600 max-w-2xl mx-auto text-sm md:text-base leading-relaxed">
             مهندسون معتمدون وقطع غيار أصلية لكل ماركة مع كتالوجات تشخيص مبرمجة لبيئة التشغيل المصرية الساحلية.

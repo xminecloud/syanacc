@@ -1,6 +1,7 @@
 import { initializeApp, getApps, FirebaseApp } from "firebase/app";
 import { getAuth, Auth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, User } from "firebase/auth";
 import { getFirestore, Firestore, collection, getDocs, addDoc, onSnapshot, doc, getDocFromServer } from "firebase/firestore";
+import firebaseConfig from "../../firebase-applet-config.json";
 
 export enum OperationType {
   CREATE = "create",
@@ -33,12 +34,15 @@ let auth: Auth | null = null;
 let db: Firestore | null = null;
 let isFirebaseConfigured = false;
 
-// Attempt dynamic import or graceful initialization
+// Initialize Firebase App safely with config
 try {
-  // Check if standard firebase config is available
   const existingApps = getApps();
   if (existingApps.length > 0) {
     app = existingApps[0];
+  } else if (firebaseConfig && firebaseConfig.projectId) {
+    app = initializeApp(firebaseConfig);
+  }
+  if (app) {
     auth = getAuth(app);
     db = getFirestore(app);
     isFirebaseConfigured = true;

@@ -391,7 +391,7 @@ export const BrandDetailPage: React.FC<BrandDetailPageProps> = ({
             className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition shrink-0"
           >
             <ArrowRight className="w-3.5 h-3.5" />
-            <span>العودة للمصفوفة العامة</span>
+            <span>العودة للقائمة العامة</span>
           </button>
         </div>
       </div>

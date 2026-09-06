@@ -12,7 +12,7 @@ FN:مركز صيانة VTEC المعتمد (syana.cc)
 ORG:VTEC Maintenance Engineering Alexandria
 TEL;TYPE=WORK,VOICE:01025946505
 TEL;TYPE=CELL,VOICE,MSG:01279177748
-EMAIL:sales@lanksh.com
+EMAIL:sales@syana.cc
 URL:https://syana.cc
 ADR;TYPE=WORK:;;سموحة، شارع فوزي معاذ;الإسكندرية;;;مصر
 NOTE:المركز المعتمد لصيانة توشيبا وزانوسي وبوش والأجهزة المنزلية بالإسكندرية والبحيرة وكفر الشيخ. خدمة 24 ساعة.

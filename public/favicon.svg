@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#090d16"/>
+    </linearGradient>
+
+    <!-- Red Brand Gradient for "V" -->
+    <linearGradient id="vGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff4d4d"/>
+      <stop offset="60%" stop-color="#cc2222"/>
+      <stop offset="100%" stop-color="#991111"/>
+    </linearGradient>
+
+    <!-- Silver Metallic Gradient for Wrench / Gear -->
+    <linearGradient id="silverGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="50%" stop-color="#cbd5e1"/>
+      <stop offset="100%" stop-color="#94a3b8"/>
+    </linearGradient>
+
+    <!-- Subtle Drop Shadow -->
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000000" flood-opacity="0.6"/>
+    </filter>
+  </defs>
+
+  <!-- Base Badge / Rounded Container -->
+  <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#bgGrad)" stroke="#cc3333" stroke-width="2.5" />
+
+  <!-- Inner Subtle Glow Ring -->
+  <rect x="4.5" y="4.5" width="55" height="55" rx="13.5" fill="none" stroke="#ffffff" stroke-width="0.75" stroke-opacity="0.15" />
+
+  <g filter="url(#shadow)">
+    <!-- Stylized Precision Wrench (Angled Diagonal) -->
+    <path d="M43 14 C44.5 15.5 45 18 43.5 20 L40 23.5 L43.5 27 C44.5 28 44.5 29.5 43.5 30.5 L40.5 33.5 C39.5 34.5 38 34.5 37 33.5 L33.5 30 L22 41.5 C20.5 43 18 43 16.5 41.5 C15 40 15 37.5 16.5 36 L28 24.5 L24.5 21 C23.5 20 23.5 18.5 24.5 17.5 L27.5 14.5 C28.5 13.5 30 13.5 31 14.5 L34.5 18 L38 14.5 C40 13 42.5 13 43 14 Z" 
+          fill="url(#silverGrad)" opacity="0.35" />
+
+    <!-- Stylized "V" Monogram for VTEC -->
+    <!-- Left Stem -->
+    <path d="M14 18 L24 18 L32 40 L26 40 Z" fill="url(#vGrad)" />
+    <!-- Right Stem -->
+    <path d="M50 18 L40 18 L32 40 L38 40 Z" fill="url(#vGrad)" />
+    <!-- Bottom Tip Highlight -->
+    <polygon points="26,40 32,51 38,40" fill="#ff4d4d" />
+    <polygon points="30,40 32,48 34,40" fill="#ffffff" opacity="0.8" />
+
+    <!-- Center Precision Gear / Core Nut Accent -->
+    <circle cx="32" cy="27" r="4.5" fill="url(#silverGrad)" stroke="#1e293b" stroke-width="1.5" />
+    <circle cx="32" cy="27" r="2" fill="#cc2222" />
+
+    <!-- Golden Service Guarantee Sparkle -->
+    <polygon points="48,13 49.5,16.5 53,18 49.5,19.5 48,23 46.5,19.5 43,18 46.5,16.5" fill="#fbbf24" />
+  </g>
+</svg>
