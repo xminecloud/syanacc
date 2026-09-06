@@ -30,7 +30,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
         {/* Main Hero Headline */}
         <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-slate-900 mb-6 leading-tight tracking-tight">
-          صيانة <span className="text-[#cc3333] underline underline-offset-8 decoration-4 decoration-amber-400">توشيبا الاسكندرية</span> وكافة الماركات العالمية
+          صيانة <span className="text-[#cc3333] underline underline-offset-8 decoration-4 decoration-amber-400>ا الاسكندرية</span> وكافة الماركات العالمية
         </h1>
 
         {/* Subtitle */}
