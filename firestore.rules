@@ -1,0 +1,46 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Default Deny Catch-All
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidBooking(data) {
+      return data.appliance is string && data.appliance.size() <= 100 &&
+             data.brand is string && data.brand.size() <= 100 &&
+             data.city is string && data.city.size() <= 100 &&
+             data.status in ['pending', 'confirmed', 'in-progress', 'completed'] &&
+             (!('notes' in data) || (data.notes is string && data.notes.size() <= 500)) &&
+             (!('customerPhone' in data) || (data.customerPhone is string && data.customerPhone.size() <= 30));
+    }
+
+    // Bookings collection
+    match /bookings/{bookingId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isValidId(bookingId) && isValidBooking(incoming());
+      allow update: if isValidId(bookingId) && isValidBooking(incoming()) && (
+        incoming().diff(existing()).affectedKeys().hasOnly(['status', 'technicianName', 'scheduledDate', 'notes'])
+      );
+      allow delete: if isSignedIn();
+    }
+  }
+}

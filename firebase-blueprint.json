@@ -1,0 +1,33 @@
+{
+  "entities": {
+    "Booking": {
+      "title": "Booking",
+      "description": "Appliance maintenance booking ticket",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "appliance": { "type": "string", "maxLength": 100 },
+        "brand": { "type": "string", "maxLength": 100 },
+        "city": { "type": "string", "maxLength": 100 },
+        "neighborhood": { "type": "string", "maxLength": 100 },
+        "customerName": { "type": "string", "maxLength": 100 },
+        "customerPhone": { "type": "string", "maxLength": 30 },
+        "notes": { "type": "string", "maxLength": 500 },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "confirmed", "in-progress", "completed"]
+        },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "scheduledDate": { "type": "string" },
+        "technicianName": { "type": "string", "maxLength": 100 }
+      },
+      "required": ["appliance", "brand", "city", "status", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/bookings/{bookingId}": {
+      "schema": { "$ref": "#/entities/Booking" },
+      "description": "Customer maintenance orders and service dispatch tickets"
+    }
+  }
+}
