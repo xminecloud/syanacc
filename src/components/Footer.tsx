@@ -111,7 +111,7 @@ export const Footer: React.FC = () => {
 
         <div className="border-t border-slate-900 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
           <div>
-            جميع الحقوق محفوظة لـ <span className="font-bold text-slate-400">VTEC الصيانة المعتمدة syana.cc</span> © {new Date().getFullYear()}
+            جميع الحقوق محفوظة لـ <span className="font-bold text-slate-400">برمجة Arbvps.CoM</span> © {new Date().getFullYear()}
           </div>
           <div className="flex items-center gap-4">
             <span className="hover:text-slate-400 cursor-pointer">سياسة الضمان</span>
