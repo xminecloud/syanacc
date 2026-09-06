@@ -18,8 +18,12 @@ import {
   Sparkles,
   ArrowUpRight,
   X,
+  Timer,
+  CalendarCheck,
+  Hourglass,
 } from "lucide-react";
 import { BookingTicket } from "../types";
+import { calculateEstimatedCompletion, EstimatedCompletionInfo } from "../utils/serviceWindow";
 
 export interface TimelineStep {
   id: "received" | "dispatched" | "completed";
@@ -139,7 +143,132 @@ export function getTicketTimelineData(ticket: BookingTicket): {
 interface TicketCompactTimelineProps {
   ticket: BookingTicket;
   onViewDetailed?: () => void;
+  showEstimatedCompletion?: boolean;
 }
+
+/**
+ * Visual badge displaying the calculated estimated completion date
+ * based on request date + default service window (48h)
+ */
+export const EstimatedCompletionBadge: React.FC<{
+  ticket: BookingTicket;
+  compact?: boolean;
+  showFormula?: boolean;
+}> = ({ ticket, compact = false, showFormula = false }) => {
+  const info = calculateEstimatedCompletion(ticket);
+
+  if (compact) {
+    return (
+      <div className="flex items-center justify-between gap-1.5 text-[11px] bg-gradient-to-r from-amber-50/80 to-slate-50 border border-amber-200/70 rounded-lg px-2.5 py-1.5">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <CalendarCheck className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+          <span className="text-slate-600 font-medium shrink-0">موعد الإنجاز المتوقع:</span>
+          <span className="font-black text-slate-900 truncate font-mono">{info.formattedEstimatedDate}</span>
+        </div>
+        <span
+          className={`text-[10px] font-bold px-1.5 py-0.5 rounded border shrink-0 ${info.statusBadge.bg} ${info.statusBadge.text} ${info.statusBadge.border}`}
+        >
+          {info.isCompleted ? "تم الإنجاز" : info.serviceWindowLabel}
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-gradient-to-r from-amber-50/90 via-slate-50 to-blue-50/60 border border-amber-200/80 rounded-xl p-2.5 space-y-1.5 text-xs">
+      <div className="flex items-center justify-between flex-wrap gap-1">
+        <div className="flex items-center gap-1.5">
+          <Timer className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+          <span className="font-bold text-slate-800">موعد الإنجاز المقدر:</span>
+          <span className="font-black text-slate-900 font-mono text-xs">{info.formattedEstimatedDate}</span>
+        </div>
+        <span
+          className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${info.statusBadge.bg} ${info.statusBadge.text} ${info.statusBadge.border}`}
+        >
+          {info.statusBadge.label}
+        </span>
+      </div>
+
+      {showFormula && (
+        <div className="text-[10px] text-slate-500 flex items-center justify-between border-t border-amber-200/50 pt-1 font-mono">
+          <span>تاريخ الطلب: {info.formattedRequestDate}</span>
+          <span className="text-amber-700 font-bold">+ نافذة الخدمة: {info.serviceWindowHours} ساعة</span>
+          <span className="text-emerald-700 font-bold">= الإنجاز المتوقع: {info.formattedEstimatedDate}</span>
+        </div>
+      )}
+    </div>
+  );
+};
+
+/**
+ * Dedicated visual panel displaying the mathematical calculation:
+ * Request Date + Default Service Window = Estimated Completion Date
+ */
+export const EstimatedCompletionPanel: React.FC<{ ticket: BookingTicket }> = ({ ticket }) => {
+  const info = calculateEstimatedCompletion(ticket);
+
+  return (
+    <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold shrink-0">
+            <Timer className="w-4 h-4" />
+          </div>
+          <div>
+            <h5 className="text-xs font-black text-slate-900">
+              حساب موعد الإنجاز المتوقع (Estimated Completion Date)
+            </h5>
+            <p className="text-[11px] text-slate-500">
+              محسوب وفق تاريخ استلام البلاغ + نافذة الخدمة الافتراضية
+            </p>
+          </div>
+        </div>
+
+        <span
+          className={`text-xs font-bold px-2.5 py-1 rounded-full border ${info.statusBadge.bg} ${info.statusBadge.text} ${info.statusBadge.border}`}
+        >
+          {info.statusBadge.label}
+        </span>
+      </div>
+
+      {/* 3 Step Formula Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-center pt-1">
+        {/* Step 1: Request Date */}
+        <div className="bg-white p-2.5 rounded-xl border border-slate-200/80 space-y-0.5 shadow-2xs">
+          <span className="text-[10px] text-slate-400 font-bold block">1. تاريخ استلام البلاغ</span>
+          <div className="font-mono text-xs font-bold text-slate-800">
+            {info.formattedRequestDate}
+          </div>
+          <span className="text-[10px] text-slate-500 block font-mono">
+            {info.formattedRequestTime}
+          </span>
+        </div>
+
+        {/* Step 2: Service Window */}
+        <div className="bg-amber-50/80 p-2.5 rounded-xl border border-amber-200/80 space-y-0.5 shadow-2xs">
+          <span className="text-[10px] text-amber-800 font-bold block">2. + نافذة الخدمة الافتراضية</span>
+          <div className="font-mono text-xs font-black text-amber-900">
+            {info.serviceWindowLabel}
+          </div>
+          <span className="text-[10px] text-amber-700 block font-mono">
+            {info.serviceWindowHours} ساعة معتمدة
+          </span>
+        </div>
+
+        {/* Step 3: Estimated Completion */}
+        <div className="bg-emerald-50/80 p-2.5 rounded-xl border border-emerald-200/80 space-y-0.5 shadow-2xs">
+          <span className="text-[10px] text-emerald-800 font-bold block">3. = موعد الإنجاز المقدر</span>
+          <div className="font-mono text-xs font-black text-emerald-900">
+            {info.formattedEstimatedDate}
+          </div>
+          <span className="text-[10px] text-emerald-700 block font-mono">
+            {info.isCompleted ? "تم التسليم بنجاح" : `الهدف الأقصى: ${info.formattedEstimatedFull}`}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 /**
  * Compact horizontal 3-step timeline for ticket cards
@@ -147,8 +276,10 @@ interface TicketCompactTimelineProps {
 export const TicketCompactTimeline: React.FC<TicketCompactTimelineProps> = ({
   ticket,
   onViewDetailed,
+  showEstimatedCompletion = true,
 }) => {
   const { steps, progressPercent, currentStageLabel } = getTicketTimelineData(ticket);
+  const completionInfo = calculateEstimatedCompletion(ticket);
 
   return (
     <div className="bg-white p-3 rounded-xl border border-slate-200/80 space-y-2.5">
@@ -214,6 +345,25 @@ export const TicketCompactTimeline: React.FC<TicketCompactTimelineProps> = ({
           );
         })}
       </div>
+
+      {/* Calculated Estimated Completion Display */}
+      {showEstimatedCompletion && (
+        <div className="bg-slate-50 border border-slate-200/70 rounded-lg p-2 space-y-1">
+          <div className="flex items-center justify-between text-[11px]">
+            <div className="flex items-center gap-1 font-bold text-slate-700">
+              <Timer className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+              <span>الموعد المتوقع للإنجاز:</span>
+            </div>
+            <span className="font-mono font-bold text-slate-900">
+              {completionInfo.formattedEstimatedDate}
+            </span>
+          </div>
+          <div className="flex items-center justify-between text-[10px] text-slate-400 pt-0.5 border-t border-slate-200/50">
+            <span>تاريخ الطلب: {completionInfo.formattedRequestDate}</span>
+            <span className="text-amber-700 font-medium">نافذة الخدمة: {completionInfo.serviceWindowLabel}</span>
+          </div>
+        </div>
+      )}
 
       {/* View Detailed Progression Button */}
       {onViewDetailed && (
@@ -308,6 +458,9 @@ export const TicketTimelineCard: React.FC<TicketTimelineCardProps> = ({
           </button>
         )}
       </div>
+
+      {/* Calculated Estimated Completion Date Panel */}
+      <EstimatedCompletionPanel ticket={ticket} />
 
       {/* Visual Timeline Progression: 3 Major Milestones */}
       <div className="relative space-y-4 pt-1">
@@ -512,6 +665,9 @@ export const TicketTimelineModal: React.FC<TicketTimelineModalProps> = ({
               />
             </div>
           </div>
+
+          {/* Calculated Estimated Completion Date Panel */}
+          <EstimatedCompletionPanel ticket={ticket} />
 
           {/* Detailed Timeline Steps */}
           <div className="space-y-4 relative">

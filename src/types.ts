@@ -19,6 +19,8 @@ export interface BookingTicket {
   createdAt: string;
   scheduledDate?: string;
   technicianName?: string;
+  estimatedCompletionDate?: string;
+  serviceWindowHours?: number;
 }
 
 export interface DiagnosticResult {

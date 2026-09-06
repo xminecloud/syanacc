@@ -14,6 +14,7 @@ import {
   ChevronLeft,
   Sparkles,
   Search,
+  Timer,
 } from "lucide-react";
 import { Brand, BookingTicket } from "../types";
 import { BRANDS_LIST } from "../data/brandsData";
@@ -623,6 +624,26 @@ export const BrandDetailPage: React.FC<BrandDetailPageProps> = ({
               <p className="text-xs text-slate-600 font-medium leading-relaxed">
                 تم تحويل طلبك لمهندس صيانة {brand.name} المتواجد في نطاق ({district}، {city}). سيتم الاتصال بك لتأكيد ميعاد الزيارة المنزلية.
               </p>
+
+              {/* Estimated Completion Date Notice */}
+              <div className="bg-white/90 border border-emerald-200 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                <div className="flex items-center gap-1.5 font-bold text-slate-800">
+                  <Timer className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>موعد إنجاز الصيانة المتوقع:</span>
+                  <span className="font-mono text-emerald-800 font-black">
+                    {new Date(Date.now() + 48 * 60 * 60 * 1000).toLocaleDateString("ar-EG", {
+                      weekday: "long",
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                    })}
+                  </span>
+                </div>
+                <span className="text-[10px] text-slate-600 font-bold bg-emerald-100/80 px-2 py-0.5 rounded-md self-start sm:self-auto font-mono">
+                  نافذة الخدمة القياسية: 48 ساعة عمل
+                </span>
+              </div>
+
               <div className="pt-2 flex flex-wrap items-center gap-3">
                 <a
                   href={`https://wa.me/201279177748?text=${encodeURIComponent(

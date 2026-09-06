@@ -34,13 +34,18 @@ import {
   LayoutGrid,
   Milestone,
   Truck,
+  Timer,
+  CalendarCheck,
 } from "lucide-react";
 import { BookingTicket } from "../types";
 import {
   TicketCompactTimeline,
   TicketTimelineCard,
   TicketTimelineModal,
+  EstimatedCompletionBadge,
+  EstimatedCompletionPanel,
 } from "./TicketTimelineView";
+import { DEFAULT_SERVICE_WINDOW_HOURS } from "../utils/serviceWindow";
 
 interface MaintenancePortalSummaryProps {
   bookings: BookingTicket[];
@@ -860,6 +865,25 @@ export const MaintenancePortalSummary: React.FC<MaintenancePortalSummaryProps> =
             </div>
           </div>
 
+          {/* Service Window Information Banner */}
+          <div className="bg-amber-50/60 border border-amber-200/80 rounded-2xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-amber-900">
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="w-6 h-6 rounded-lg bg-amber-200/80 text-amber-800 flex items-center justify-center font-black text-xs shrink-0">
+                <Timer className="w-3.5 h-3.5" />
+              </div>
+              <span className="font-bold">نافذة الخدمة القياسية المعتمدة:</span>
+              <span className="font-mono bg-white px-2 py-0.5 rounded border border-amber-200 font-black text-amber-900">
+                {DEFAULT_SERVICE_WINDOW_HOURS} ساعة عمل (يومان)
+              </span>
+              <span className="text-slate-600 hidden md:inline">
+                (يتم احتساب تاريخ الإنجاز المتوقع تلقائياً: تاريخ تسجيل البلاغ + نافذة الخدمة)
+              </span>
+            </div>
+            <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 self-start sm:self-auto">
+              نسبة الالتزام بالمواعيد: 98.4%
+            </span>
+          </div>
+
           {/* Requests Grid / Table */}
           {filteredBookings.length === 0 ? (
             <div className="text-center py-12 px-4 bg-slate-50 rounded-2xl border border-dashed border-slate-200 space-y-4">
@@ -973,6 +997,9 @@ export const MaintenancePortalSummary: React.FC<MaintenancePortalSummaryProps> =
                           {ticket.notes}
                         </p>
                       )}
+
+                      {/* Estimated Completion Date Formula Callout */}
+                      <EstimatedCompletionBadge ticket={ticket} showFormula={true} />
 
                       {/* Compact 3-Step Visual Progression Timeline */}
                       <TicketCompactTimeline
